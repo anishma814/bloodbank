@@ -1,0 +1,78 @@
+### Register a donor
+POST http://127.0.0.1:8000/api/users/register/
+Content-Type: application/json
+
+{
+  "username": "donor1",
+  "email": "donor1@test.com",
+  "password": "TestPass123",
+  "role": "donor"
+}
+
+### Register a receiver
+POST http://127.0.0.1:8000/api/users/register/
+Content-Type: application/json
+
+{
+  "username": "receiver1",
+  "email": "receiver1@test.com",
+  "password": "TestPass123",
+  "role": "receiver"
+}
+
+### Login as donor — copy the "access" token from the response
+POST http://127.0.0.1:8000/api/auth/login/
+Content-Type: application/json
+
+{
+  "username": "donor1",
+  "password": "TestPass123"
+}
+
+### Login as receiver — copy the "access" token from the response
+POST http://127.0.0.1:8000/api/auth/login/
+Content-Type: application/json
+
+{
+  "username": "receiver1",
+  "password": "TestPass123"
+}
+
+### Create donor profile (paste donor's access token below)
+POST http://127.0.0.1:8000/api/donors/
+Content-Type: application/json
+Authorization: Bearer 
+
+{
+  "blood_group": "O+",
+  "weight": 65,
+  "age": 28
+}
+
+### Create receiver profile (paste receiver's access token below)
+POST http://127.0.0.1:8000/api/receivers/
+Content-Type: application/json
+Authorization: Bearer 
+
+{
+  "hospital_name": "City Hospital",
+  "contact_number": "9999999999"
+}
+
+### Create a blood request (as receiver)
+POST http://127.0.0.1:8000/api/requests/blood-requests/
+Content-Type: application/json
+Authorization: Bearer 
+
+{
+  "blood_group_needed": "O+",
+  "units_needed": 2
+}
+
+### List receiver's own requests (as receiver) — note the id of the request you just created
+GET http://127.0.0.1:8000/api/requests/blood-requests/
+Authorization: Bearer 
+
+### Get matching donors for that request (replace 1 with the actual request id)
+GET http://127.0.0.1:8000/api/requests/blood-requests/1/matches/
+Authorization: Bearer 
