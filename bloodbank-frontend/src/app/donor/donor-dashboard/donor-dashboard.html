@@ -1,0 +1,60 @@
+<div class="dashboard">
+  <h2>Donor Dashboard</h2>
+
+  <div *ngIf="profile" class="eligibility-badge" [class.eligible]="profile.is_eligible" [class.not-eligible]="!profile.is_eligible">
+    <strong>Eligibility:</strong> {{ profile.is_eligible ? 'Eligible to donate' : 'Not eligible' }}
+  </div>
+
+  <form (ngSubmit)="onSubmit()" #donorForm="ngForm">
+    <div class="form-group">
+      <label>Blood Group</label>
+      <select name="bloodGroup" [(ngModel)]="bloodGroup" required>
+        <option value="">Select</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Weight (kg)</label>
+      <input type="number" name="weight" [(ngModel)]="weight" required min="1" />
+    </div>
+
+    <div class="form-group">
+      <label>Age</label>
+      <input type="number" name="age" [(ngModel)]="age" required min="1" />
+    </div>
+
+    <button type="submit" [disabled]="!donorForm.valid">
+      {{ hasProfile ? 'Update Profile' : 'Create Profile' }}
+    </button>
+  </form>
+
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
+
+  <hr />
+
+  <h3>Incoming Offers</h3>
+  <ul>
+    <li *ngFor="let record of records">
+      Request for {{ record.request_detail?.blood_group_needed }}
+      from {{ record.request_detail?.hospital_name_snapshot }}
+      — status: {{ record.status }}
+
+      <span *ngIf="record.status === 'offered'">
+        <button (click)="accept(record.id)">Accept</button>
+        <button (click)="decline(record.id)">Decline</button>
+      </span>
+    </li>
+  </ul>
+  <p *ngIf="records.length === 0">No offers yet.</p>
+
+  <button (click)="logout()">Logout</button>
+</div>

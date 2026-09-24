@@ -1,0 +1,78 @@
+<div class="dashboard">
+  <h2>Receiver Dashboard</h2>
+
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
+
+  <section>
+    <h3>Hospital Profile</h3>
+    <form (ngSubmit)="onSubmitProfile()" #profileForm="ngForm">
+      <div class="form-group">
+        <label>Hospital Name</label>
+        <input type="text" name="hospitalName" [(ngModel)]="hospitalName" required />
+      </div>
+      <div class="form-group">
+        <label>Contact Number</label>
+        <input type="text" name="contactNumber" [(ngModel)]="contactNumber" required />
+      </div>
+      <button type="submit" [disabled]="!profileForm.valid">
+        {{ hasProfile ? 'Update Profile' : 'Create Profile' }}
+      </button>
+    </form>
+  </section>
+
+  <hr />
+
+  <section>
+    <h3>Request Blood</h3>
+    <form (ngSubmit)="onSubmitRequest()" #requestForm="ngForm">
+      <div class="form-group">
+        <label>Blood Group Needed</label>
+        <select name="bloodGroupNeeded" [(ngModel)]="bloodGroupNeeded" required>
+          <option value="">Select</option>
+          <option value="A+">A+</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B-">B-</option>
+          <option value="AB+">AB+</option>
+          <option value="AB-">AB-</option>
+          <option value="O+">O+</option>
+          <option value="O-">O-</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Units Needed</label>
+        <input type="number" name="unitsNeeded" [(ngModel)]="unitsNeeded" required min="1" />
+      </div>
+      <button type="submit" [disabled]="!requestForm.valid">Create Request</button>
+    </form>
+  </section>
+
+  <hr />
+
+  <section>
+    <h3>My Requests</h3>
+    <ul>
+      <li *ngFor="let req of myRequests">
+        <strong>{{ req.hospital_name_snapshot }}</strong> — {{ req.blood_group_needed }} — {{ req.units_needed }}
+        unit(s) — status: {{ req.status }}
+        <button (click)="viewMatches(req.id!)">View Matches</button>
+      </li>
+    </ul>
+  </section>
+
+  <section *ngIf="selectedRequestId">
+    <h3>Matching Donors</h3>
+    <ul>
+      <li *ngFor="let donor of matches">
+        Donor #{{ donor.id }} — {{ donor.blood_group }} — {{ donor.weight }}kg — Age {{ donor.age }}
+        <button (click)="offerDonor(donor.id)" [disabled]="offeredDonorIds.has(donor.id)">
+          {{ offeredDonorIds.has(donor.id) ? 'Offer Sent' : 'Send Offer' }}
+        </button>
+      </li>
+    </ul>
+    <p *ngIf="matches.length === 0">No matching donors found.</p>
+  </section>
+
+  <button (click)="logout()">Logout</button>
+</div>
