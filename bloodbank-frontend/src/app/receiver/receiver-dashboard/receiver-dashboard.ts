@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../../auth/auth';
 import { Receiver, ReceiverProfile } from '../receiver';
-import { Request, BloodRequest, MatchedDonor } from '../../requests/request';
+import { Request, BloodRequest, MatchedDonor, DonationRecord } from '../../requests/request';
 
 @Component({
   selector: 'app-receiver-dashboard',
@@ -25,6 +25,10 @@ export class ReceiverDashboard implements OnInit {
 
   selectedRequestId: number | null = null;
   matches: MatchedDonor[] = [];
+  matchesLoading = false;
+
+  offeredDonorIds: Set<number> = new Set();
+  records: DonationRecord[] = [];
 
   errorMessage = '';
   successMessage = '';
@@ -33,12 +37,14 @@ export class ReceiverDashboard implements OnInit {
     private authService: Auth,
     private receiverService: Receiver,
     private requestService: Request,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadProfile();
     this.loadRequests();
+    this.loadRecords();
   }
 
   loadProfile(): void {
@@ -51,6 +57,7 @@ export class ReceiverDashboard implements OnInit {
           this.hospitalName = profiles[0].hospital_name;
           this.contactNumber = profiles[0].contact_number;
         }
+        this.cdr.detectChanges();
       }
     });
   }
@@ -66,8 +73,12 @@ export class ReceiverDashboard implements OnInit {
         next: (updated) => {
           this.profile = updated;
           this.successMessage = 'Profile updated.';
+          this.cdr.detectChanges();
         },
-        error: () => this.errorMessage = 'Update failed.'
+        error: () => {
+          this.errorMessage = 'Update failed.';
+          this.cdr.detectChanges();
+        }
       });
     } else {
       this.receiverService.createProfile(data).subscribe({
@@ -75,8 +86,12 @@ export class ReceiverDashboard implements OnInit {
           this.profile = created;
           this.hasProfile = true;
           this.successMessage = 'Profile created.';
+          this.cdr.detectChanges();
         },
-        error: () => this.errorMessage = 'Could not create profile.'
+        error: () => {
+          this.errorMessage = 'Could not create profile.';
+          this.cdr.detectChanges();
+        }
       });
     }
   }
@@ -85,6 +100,7 @@ export class ReceiverDashboard implements OnInit {
     this.requestService.getMyRequests().subscribe({
       next: (response: any) => {
         this.myRequests = Array.isArray(response) ? response : response.results;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -105,21 +121,47 @@ export class ReceiverDashboard implements OnInit {
         this.unitsNeeded = 1;
         this.loadRequests();
       },
-      error: () => this.errorMessage = 'Could not create request.'
+      error: () => {
+        this.errorMessage = 'Could not create request.';
+        this.cdr.detectChanges();
+      }
     });
   }
 
   viewMatches(requestId: number): void {
     this.selectedRequestId = requestId;
+    this.matches = [];
+    this.matchesLoading = true;
+
     this.requestService.getMatches(requestId).subscribe({
       next: (response: any) => {
         this.matches = Array.isArray(response) ? response : response.results;
+        this.matchesLoading = false;
+        this.cdr.detectChanges();
       },
-      error: () => this.errorMessage = 'Could not load matches.'
+      error: () => {
+        this.errorMessage = 'Could not load matches.';
+        this.matchesLoading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
-  offeredDonorIds: Set<number> = new Set();
+  loadRecords(): void {
+    this.requestService.getMyDonationRecords().subscribe({
+      next: (response: any) => {
+        this.records = Array.isArray(response) ? response : response.results;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  getOfferStatus(donorId: number): string | null {
+    const record = this.records.find(
+      r => r.donor === donorId && r.request === this.selectedRequestId
+    );
+    return record ? record.status : null;
+  }
 
   offerDonor(donorId: number): void {
     if (!this.selectedRequestId || this.offeredDonorIds.has(donorId)) return;
@@ -128,8 +170,12 @@ export class ReceiverDashboard implements OnInit {
       next: () => {
         this.successMessage = 'Offer sent to donor.';
         this.offeredDonorIds.add(donorId);
+        this.loadRecords();
       },
-      error: () => this.errorMessage = 'Could not send offer.'
+      error: () => {
+        this.errorMessage = 'Could not send offer.';
+        this.cdr.detectChanges();
+      }
     });
   }
 

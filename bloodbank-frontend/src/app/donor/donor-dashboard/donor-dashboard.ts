@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -26,11 +26,12 @@ export class DonorDashboard implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  constructor(
+    constructor(
     private authService: Auth,
     private donorService: Donor,
     private requestService: Request,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -49,9 +50,11 @@ export class DonorDashboard implements OnInit {
           this.weight = profiles[0].weight;
           this.age = profiles[0].age;
         }
+        this.cdr.detectChanges();
       },
       error: () => {
         this.errorMessage = 'Could not load profile.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -60,6 +63,7 @@ export class DonorDashboard implements OnInit {
     this.requestService.getMyDonationRecords().subscribe({
       next: (response: any) => {
         this.records = Array.isArray(response) ? response : response.results;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -84,9 +88,11 @@ export class DonorDashboard implements OnInit {
         next: (updated) => {
           this.profile = updated;
           this.successMessage = 'Profile updated.';
+          this.cdr.detectChanges();
         },
         error: () => {
           this.errorMessage = 'Update failed.';
+          this.cdr.detectChanges();
         }
       });
     } else {
@@ -95,9 +101,11 @@ export class DonorDashboard implements OnInit {
           this.profile = created;
           this.hasProfile = true;
           this.successMessage = 'Profile created.';
+          this.cdr.detectChanges();
         },
         error: () => {
           this.errorMessage = 'Could not create profile.';
+          this.cdr.detectChanges();
         }
       });
     }
@@ -109,7 +117,10 @@ export class DonorDashboard implements OnInit {
         this.successMessage = 'Donation accepted.';
         this.loadOffers();
       },
-      error: () => this.errorMessage = 'Could not accept offer.'
+      error: () => {
+        this.errorMessage = 'Could not accept offer.';
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -119,7 +130,10 @@ export class DonorDashboard implements OnInit {
         this.successMessage = 'Donation declined.';
         this.loadOffers();
       },
-      error: () => this.errorMessage = 'Could not decline offer.'
+      error: () => {
+        this.errorMessage = 'Could not decline offer.';
+        this.cdr.detectChanges();
+      }
     });
   }
 

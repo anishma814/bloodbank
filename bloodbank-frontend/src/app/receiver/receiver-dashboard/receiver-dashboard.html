@@ -63,15 +63,20 @@
 
   <section *ngIf="selectedRequestId">
     <h3>Matching Donors</h3>
-    <ul>
+    <p *ngIf="matchesLoading">Loading matches...</p>
+    <ul *ngIf="!matchesLoading">
       <li *ngFor="let donor of matches">
         Donor #{{ donor.id }} — {{ donor.blood_group }} — {{ donor.weight }}kg — Age {{ donor.age }}
-        <button (click)="offerDonor(donor.id)" [disabled]="offeredDonorIds.has(donor.id)">
-          {{ offeredDonorIds.has(donor.id) ? 'Offer Sent' : 'Send Offer' }}
-        </button>
+
+        <span *ngIf="getOfferStatus(donor.id) as offerStatus; else noOfferYet">
+          <strong>Status: {{ offerStatus }}</strong>
+        </span>
+        <ng-template #noOfferYet>
+          <button (click)="offerDonor(donor.id)">Send Offer</button>
+        </ng-template>
       </li>
     </ul>
-    <p *ngIf="matches.length === 0">No matching donors found.</p>
+    <p *ngIf="!matchesLoading && matches.length === 0">No matching donors found.</p>
   </section>
 
   <button (click)="logout()">Logout</button>

@@ -86,7 +86,7 @@ class DonationRecordViewSet(viewsets.ModelViewSet):
             return Response({"error": "Not your donation record."}, status=status.HTTP_403_FORBIDDEN)
         record.status = 'accepted'
         record.save()
-        record.request.status = 'matched'
+        record.request.status = 'fulfilled'
         record.request.save()
         return Response(self.get_serializer(record).data)
 
